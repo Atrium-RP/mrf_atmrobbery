@@ -1,5 +1,5 @@
 local QBCore = exports[Config.Core]:GetCoreObject()
-
+local currentRobber = nil
 RegisterServerEvent("mrf_atmrobbery:server:getReward")
 AddEventHandler("mrf_atmrobbery:server:getReward", function()
     local src = source
@@ -65,10 +65,13 @@ end)
 RegisterServerEvent("mrf_atmrobbery:server:deleteRopeProp")
 AddEventHandler("mrf_atmrobbery:server:deleteRopeProp", function(Rope)
     TriggerClientEvent("mrf_atmrobbery:client:deleteRopeProp", -1, Rope)
+    currentRobber = nil
 end)
 
 QBCore.Functions.CreateUseableItem(Config.RequiredItem, function(source, item)
     local src = source
+    if currentRobber ~= nil then TriggerClientEvent("QBCore:Notify", src, "Rope in use", "error", 7000) return end
+    currentRobber = QBCore.Functions.GetPlayer(src)
     TriggerClientEvent("mrf_atmrobbery:client:ropeUsed", src)
 end)
 

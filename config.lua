@@ -18,7 +18,7 @@ Config.RequiredItem = 'rope'
 
 -- Police
 Config.RequiredPolice = 0
-Config.PSDispacth = true
+Config.PSDispacth = false
 Config.Dispatch = 'ps-dispatch'
 
 --Hack

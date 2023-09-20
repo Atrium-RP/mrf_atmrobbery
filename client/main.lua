@@ -185,7 +185,7 @@ AddEventHandler("mrf_atmrobbery:client:ropeUsed", function()
                     })
                     while RobberyStarted do
                         TriggerServerEvent("mrf_atmrobbery:server:attachVehicle", NetworkVehicle, NetworkPlayerPed)
-                        Wait(0)
+                        Wait(100)
                     end
                 end, function()
                     QBCore.Functions.Notify("You canceled attaching rope!", 'error', 7500)
@@ -211,15 +211,24 @@ AddEventHandler("mrf_atmrobbery:client:crackATM", function()
     }, {}, {}, {}, function()
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
         local NetConsoleProp = ObjToNet(ConsoleProp)
-        exports['ps-ui']:Scrambler(function(success)
-            if success then
+        exports["memorygame"]:thermiteminigame(12, 4, 4, 120,
+            function()
                 TriggerServerEvent("mrf_atmrobbery:server:getReward")
                 TriggerServerEvent("mrf_atmrobbery:server:deleteATM", NetConsoleProp)
                 TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
-            else
+            end,
+            function()
                 QBCore.Functions.Notify("You Failed, Try Again", 'error', 7500)
-            end
-        end, Config.Hack.Type, Config.Hack.Time, 0)
+            end)
+        -- exports['ps-ui']:Scrambler(function(success)
+        --     if success then
+        --         TriggerServerEvent("mrf_atmrobbery:server:getReward")
+        --         TriggerServerEvent("mrf_atmrobbery:server:deleteATM", NetConsoleProp)
+        --         TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
+        --     else
+        --         QBCore.Functions.Notify("You Failed, Try Again", 'error', 7500)
+        --     end
+        -- end, Config.Hack.Type, Config.Hack.Time, 0)
     end)
 end)
 
