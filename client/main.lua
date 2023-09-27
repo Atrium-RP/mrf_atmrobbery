@@ -195,6 +195,7 @@ AddEventHandler("mrf_atmrobbery:client:ropeUsed", function()
             QBCore.Functions.Notify("No police are in city!", "error")
         end
     else
+        TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
         QBCore.Functions.Notify("There are no nearby vehicles?", "error")
     end
 end)
@@ -216,6 +217,7 @@ AddEventHandler("mrf_atmrobbery:client:crackATM", function()
                 TriggerServerEvent("mrf_atmrobbery:server:getReward")
                 TriggerServerEvent("mrf_atmrobbery:server:deleteATM", NetConsoleProp)
                 TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
+                TriggerEvent("qb-atms:client:addTargetAtmModel")
             end,
             function()
                 QBCore.Functions.Notify("You Failed, Try Again", 'error', 7500)
