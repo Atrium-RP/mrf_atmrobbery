@@ -5,11 +5,11 @@ AddEventHandler("mrf_atmrobbery:server:getReward", function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
 
-    local Chance = Config.RewardChance
+    local Chance = math.random(1, 10)--Config.RewardChance
     local Amount = 1
 
     local info = {
-        worth = Config.Cash
+        worth = math.random(1290, 1400)--Config.Cash
     }
 
     if Config.Markedbills then
@@ -18,21 +18,21 @@ AddEventHandler("mrf_atmrobbery:server:getReward", function()
             TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.RewardItem], 'add', 1)
             Player.Functions.AddItem(Config.MoneyItem, 1, false, info)
             TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.MoneyItem], "add")
-            TriggerClientEvent("QBCore:Notify", src, "You got " .. Config.Cash .. ' $', "success")
+            TriggerClientEvent("QBCore:Notify", src, "Vous avez obtenu " .. info.worth .. ' $', "success")
         else
             Player.Functions.AddItem(Config.MoneyItem, 1, false, info)
             TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.MoneyItem], "add")
-            TriggerClientEvent("QBCore:Notify", src, "You got " .. Config.Cash .. ' $', "success")
+            TriggerClientEvent("QBCore:Notify", src, "Vous avez obtenu " .. info.worth .. ' $', "success")
         end
     else
         if Chance == Amount then
             Player.Functions.AddItem(Config.RewardItem, 1)
             TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.RewardItem], 'add', 1)
-            Player.Functions.AddMoney('cash', Config.Cash, 'ATM Cash')
-            TriggerClientEvent("QBCore:Notify", src, "You got " .. Config.Cash .. ' $', "success")
+            Player.Functions.AddMoney('cash', info.worth, 'ATM Cash')
+            TriggerClientEvent("QBCore:Notify", src, "Vous avez obtenu " .. info.worth .. ' $', "success")
         else
-            Player.Functions.AddMoney('cash', Config.Cash, 'ATM Cash')
-            TriggerClientEvent("QBCore:Notify", src, "You got " .. Config.Cash .. ' $', "success")
+            Player.Functions.AddMoney('cash', info.worth, 'ATM Cash')
+            TriggerClientEvent("QBCore:Notify", src, "Vous avez obtenu " .. info.worth .. ' $', "success")
         end
     end
 end)
@@ -70,7 +70,7 @@ end)
 
 QBCore.Functions.CreateUseableItem(Config.RequiredItem, function(source, item)
     local src = source
-    if currentRobber ~= nil then TriggerClientEvent("QBCore:Notify", src, "Rope in use", "error", 7000) return end
+    if currentRobber ~= nil then TriggerClientEvent("QBCore:Notify", src, "Les ATMs ont été vérrouillés, veuillez essayer à nouveau!", "error", 7000) return end
     currentRobber = QBCore.Functions.GetPlayer(src)
     TriggerClientEvent("mrf_atmrobbery:client:ropeUsed", src)
 end)

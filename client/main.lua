@@ -58,7 +58,7 @@ AddEventHandler("mrf_atmrobbery:client:attachRopeATM", function()
         local ATMObject = ATMObject()
         if DoesEntityExist(ATMObject.prop) then
             TaskTurnPedToFaceEntity(PlayerPed, ATMObject.prop, 1000)
-            QBCore.Functions.Progressbar('attachatm', "Attaching rope to ATM", 4000, false, true, { -- Name | Label | Time | useWhileDead | canCancel
+            QBCore.Functions.Progressbar('attachatm', "Vous attachez la corde à l'ATM", 4000, false, true, { -- Name | Label | Time | useWhileDead | canCancel
                 disableMovement = true,
                 disableCarMovement = true,
                 disableMouse = false,
@@ -71,6 +71,42 @@ AddEventHandler("mrf_atmrobbery:client:attachRopeATM", function()
                 if Config.PSDispacth then
                     exports[Config.Dispatch]:SuspiciousActivity()
                 end
+                -- TriggerServerEvent('qs-dispatch:server:CreateDispatchCall', {
+                --     job = { 'police' },
+                --     callLocation = QBCore.Functions.GetCoords(PlayerPed),
+                --     callCode = { code = 'Braquage ATM', snippet = '<10-45>' },
+                --     message = "Anomalie détecté sur un ATM",
+                --     flashes = false, -- you can set to true if you need call flashing sirens...
+                --     image = "URL", -- Url for image to attach to the call 
+                --     --you can use the getSSURL export to get this url
+                --     blip = {
+                --         sprite = 488, --blip sprite
+                --         scale = 1.5, -- blip scale
+                --         colour = 1, -- blio colour
+                --         flashes = true, -- blip flashes
+                --         text = 'Hight Speed', -- blip text
+                --         time = (20 * 1000), --blip fadeout time (1 * 60000) = 1 minute
+                --     }
+                -- })
+                local playerData = exports['qs-dispatch']:GetPlayerInfo()
+                exports['qs-dispatch']:getSSURL(function(image)
+                    TriggerServerEvent('qs-dispatch:server:CreateDispatchCall', {
+                        job = { 'police' },
+                        callLocation = playerData.coords,
+                        callCode = { code = 'Braquage ATM', snippet = '10-92' },
+                        message = " Adresse: Entre ".. playerData.street_1.. " et ".. playerData.street_2.. "",
+                        flashes = false,
+                        image = image or nil,
+                        blip = {
+                            sprite = 488,
+                            scale = 1.5,
+                            colour = 1,
+                            flashes = true,
+                            text = 'Braquage ATM',
+                            time = 1000, --(20 * 1000),     --20 secs
+                        }
+                    })
+                end)
                 ClearPedTasks(PlayerPed)
                 local ObjectDes = nil
                 local ObjectConsole = nil
@@ -110,7 +146,7 @@ AddEventHandler("mrf_atmrobbery:client:attachRopeATM", function()
                                 {
                                     event = "mrf_atmrobbery:client:crackATM",
                                     icon = "fas fa-code",
-                                    label = "Crack ATM"
+                                    label = "Pirater l'ATM"
                                 }
                             },
                             distance = 2.0
@@ -123,10 +159,10 @@ AddEventHandler("mrf_atmrobbery:client:attachRopeATM", function()
                 RobberyStarted = false
             end)
         else
-            QBCore.Functions.Notify("There is no ATM nearby!", "error")
+            QBCore.Functions.Notify("Il n'y a pas d'ATM à proximité!", "error")
         end
     else
-        QBCore.Functions.Notify("How did you do this?", "error")
+        QBCore.Functions.Notify("Comment en êtes vous arrivez là?", "error")
     end
 end)
 
@@ -137,8 +173,9 @@ AddEventHandler("mrf_atmrobbery:client:stopAttaching", function()
         RobberyStarted = false
         TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
         TriggerServerEvent("mrf_atmrobbery:server:addRopeItem")
+        TriggerEvent("qb-atms:client:addTargetAtmModel")
     else
-        QBCore.Functions.Notify("How did you do this?", "error")
+        QBCore.Functions.Notify("Comment en êtes vous arrivez là?", "error")
     end
 end)
 
@@ -152,7 +189,7 @@ AddEventHandler("mrf_atmrobbery:client:ropeUsed", function()
         if CurrentCops >= Config.RequiredPolice then
             if not IsPedInAnyVehicle(PlayerPed, false) then
                 TaskTurnPedToFaceEntity(PlayerPed, Vehicle, 1000)
-                QBCore.Functions.Progressbar('usingRopeATM', "Attaching rope to vehicle", 4000, false, true, {
+                QBCore.Functions.Progressbar('usingRopeATM', "Installation de la corde", 4000, false, true, {
                     disableMovement = true,
                     disableCarMovement = true,
                     disableMouse = false,
@@ -173,12 +210,12 @@ AddEventHandler("mrf_atmrobbery:client:ropeUsed", function()
                             {
                                 event = "mrf_atmrobbery:client:attachRopeATM",
                                 icon = "fas fa-chevron-right",
-                                label = "Attach Rope to ATM"
+                                label = "Attacher la corde à l'ATM"
                             },
                             {
                                 event = "mrf_atmrobbery:client:stopAttaching",
                                 icon = "fas fa-chevron-left",
-                                label = "Stop Attaching Rope"
+                                label = "Retirer la corde"
                             }
                         },
                         distance = 2.5
@@ -188,40 +225,59 @@ AddEventHandler("mrf_atmrobbery:client:ropeUsed", function()
                         Wait(100)
                     end
                 end, function()
-                    QBCore.Functions.Notify("You canceled attaching rope!", 'error', 7500)
+                    QBCore.Functions.Notify("Vous n'avez pas réussi à attacher la corde!", 'error', 7500)
                 end)
             end
         else
-            QBCore.Functions.Notify("No police are in city!", "error")
+            QBCore.Functions.Notify("Il n'y pas assez de force de l'ordre!", "error")
         end
     else
         TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
-        QBCore.Functions.Notify("There are no nearby vehicles?", "error")
+        QBCore.Functions.Notify("Il n'y a pas de véhicule à proximité?", "error")
     end
 end)
+
+--- This is triggered once the hack at a small bank is done
+--- @param success boolean
+--- @return nil
+local function OnHackDone(success)
+    if success then
+        TriggerEvent('mhacking:hide')
+        TriggerServerEvent("mrf_atmrobbery:server:getReward")
+        TriggerServerEvent("mrf_atmrobbery:server:deleteATM", NetConsoleProp)
+        TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
+        TriggerEvent("qb-atms:client:addTargetAtmModel")
+    else
+        TriggerEvent('mhacking:hide')
+        QBCore.Functions.Notify("Vous avez échoué, essayez à nouveau!", 'error', 7500)
+    end
+end
 
 RegisterNetEvent("mrf_atmrobbery:client:crackATM")
 AddEventHandler("mrf_atmrobbery:client:crackATM", function()
     local ConsoleProp = ATMConsole()
     TriggerEvent('animations:client:EmoteCommandStart', {"mechanic"})
-    QBCore.Functions.Progressbar('crackatm', "Cracking ATM", 4000, false, true, {
+    QBCore.Functions.Progressbar('crackatm', "Piratage de l'ATM", 4000, false, true, {
         disableMovement = true,
         disableCarMovement = true,
         disableMouse = false,
         disableCombat = true,
     }, {}, {}, {}, function()
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        local NetConsoleProp = ObjToNet(ConsoleProp)
-        exports["memorygame"]:thermiteminigame(12, 4, 4, 120,
-            function()
-                TriggerServerEvent("mrf_atmrobbery:server:getReward")
-                TriggerServerEvent("mrf_atmrobbery:server:deleteATM", NetConsoleProp)
-                TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
-                TriggerEvent("qb-atms:client:addTargetAtmModel")
-            end,
-            function()
-                QBCore.Functions.Notify("You Failed, Try Again", 'error', 7500)
-            end)
+        --local NetConsoleProp = ObjToNet(ConsoleProp)
+        NetConsoleProp = ObjToNet(ConsoleProp)
+        -- exports["memorygame"]:thermiteminigame(12, 4, 4, 120,
+        --     function()
+        --         TriggerServerEvent("mrf_atmrobbery:server:getReward")
+        --         TriggerServerEvent("mrf_atmrobbery:server:deleteATM", NetConsoleProp)
+        --         TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
+        --         TriggerEvent("qb-atms:client:addTargetAtmModel")
+        --     end,
+        --     function()
+        --         QBCore.Functions.Notify("Vous avez échoué, essayez à nouveau!", 'error', 7500)
+        --     end)
+            TriggerEvent("mhacking:show")
+            TriggerEvent("mhacking:start", math.random(6, 7), math.random(20, 25), OnHackDone) --math.random(12, 15)
         -- exports['ps-ui']:Scrambler(function(success)
         --     if success then
         --         TriggerServerEvent("mrf_atmrobbery:server:getReward")
