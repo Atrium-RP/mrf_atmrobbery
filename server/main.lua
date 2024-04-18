@@ -9,7 +9,8 @@ AddEventHandler("mrf_atmrobbery:server:getReward", function()
     local Amount = 1
 
     local info = {
-        worth = math.random(1290, 1400)--Config.Cash
+        worth = math.random(1300, 1500)--Config.Cash
+        --worth = math.random(1090, 1200)--Config.Cash
     }
 
     if Config.Markedbills then
@@ -54,7 +55,20 @@ end)
 
 RegisterServerEvent("mrf_atmrobbery:server:spawnATM")
 AddEventHandler("mrf_atmrobbery:server:spawnATM", function(NetObjectConsole)
+    local src = source
     TriggerClientEvent("mrf_atmrobbery:client:spawnATM", -1, NetObjectConsole)
+    TriggerEvent("mrf_atmrobbery:server:timerATM", src)
+end)
+
+RegisterServerEvent("mrf_atmrobbery:server:timerATM")
+AddEventHandler("mrf_atmrobbery:server:timerATM", function(src)
+    local src1 = src
+    SetTimeout(1000 * 60 * 1, function()
+        if currentRobber then
+            TriggerClientEvent("mrf_atmrobbery:client:deleteTimeOut", src1)
+        end
+        TriggerEvent("mrf_atmrobbery:server:resetCurrentRobber")
+    end)
 end)
 
 RegisterServerEvent("mrf_atmrobbery:server:deleteATM")
@@ -70,9 +84,20 @@ end)
 
 QBCore.Functions.CreateUseableItem(Config.RequiredItem, function(source, item)
     local src = source
-    if currentRobber ~= nil then TriggerClientEvent("QBCore:Notify", src, "Les ATMs ont été vérrouillés, veuillez essayer à nouveau!", "error", 7000) return end
+    if currentRobber ~= nil then 
+        TriggerClientEvent("QBCore:Notify", src, "Les ATMs ont été vérrouillés, veuillez essayer à nouveau!", "error", 7000)
+        SetTimeout(1000 * 60 * 1, function()
+            TriggerEvent("mrf_atmrobbery:server:resetCurrentRobber")
+        end)
+        TriggerEvent("mrf_atmrobbery:server:resetCurrentRobber")
+        return
+    end
     currentRobber = QBCore.Functions.GetPlayer(src)
     TriggerClientEvent("mrf_atmrobbery:client:ropeUsed", src)
+end)
+
+RegisterNetEvent('mrf_atmrobbery:server:resetCurrentRobber', function()
+    currentRobber = nil
 end)
 
 RegisterServerEvent("mrf_atmrobbery:server:RemoveItem")

@@ -57,38 +57,12 @@ AddEventHandler("mrf_atmrobbery:client:attachRopeATM", function()
         local PlayerPed = PlayerPedId()
         local ATMObject = ATMObject()
         if DoesEntityExist(ATMObject.prop) then
+            local atmCoords = GetEntityCoords(ATMObject.prop)
+            local mrpdCoords = vector3(438.67, -981.94, 30.69) -- MRPD Coords Accueil
+            local dist = GetDistanceBetweenCoords(atmCoords.x, atmCoords.y, atmCoords.z, mrpdCoords.x, mrpdCoords.y, mrpdCoords.z, true)
+            local timer = 6000 + math.round(dist)
             TaskTurnPedToFaceEntity(PlayerPed, ATMObject.prop, 1000)
-            QBCore.Functions.Progressbar('attachatm', "Vous attachez la corde à l'ATM", 4000, false, true, { -- Name | Label | Time | useWhileDead | canCancel
-                disableMovement = true,
-                disableCarMovement = true,
-                disableMouse = false,
-                disableCombat = true,
-            }, {
-                animDict = 'anim@gangops@facility@servers@',
-                anim = 'hotwire',
-                flags = 16,
-            }, {}, {}, function() -- Play When Done
-                if Config.PSDispacth then
-                    exports[Config.Dispatch]:SuspiciousActivity()
-                end
-                -- TriggerServerEvent('qs-dispatch:server:CreateDispatchCall', {
-                --     job = { 'police' },
-                --     callLocation = QBCore.Functions.GetCoords(PlayerPed),
-                --     callCode = { code = 'Braquage ATM', snippet = '<10-45>' },
-                --     message = "Anomalie détecté sur un ATM",
-                --     flashes = false, -- you can set to true if you need call flashing sirens...
-                --     image = "URL", -- Url for image to attach to the call 
-                --     --you can use the getSSURL export to get this url
-                --     blip = {
-                --         sprite = 488, --blip sprite
-                --         scale = 1.5, -- blip scale
-                --         colour = 1, -- blio colour
-                --         flashes = true, -- blip flashes
-                --         text = 'Hight Speed', -- blip text
-                --         time = (20 * 1000), --blip fadeout time (1 * 60000) = 1 minute
-                --     }
-                -- })
-                local playerData = exports['qs-dispatch']:GetPlayerInfo()
+            local playerData = exports['qs-dispatch']:GetPlayerInfo()
                 exports['qs-dispatch']:getSSURL(function(image)
                     TriggerServerEvent('qs-dispatch:server:CreateDispatchCall', {
                         job = { 'police' },
@@ -107,6 +81,38 @@ AddEventHandler("mrf_atmrobbery:client:attachRopeATM", function()
                         }
                     })
                 end)
+            QBCore.Functions.Progressbar('attachatm', "Vous attachez la corde à l'ATM", timer, false, true, { -- Name | Label | Time | useWhileDead | canCancel
+                disableMovement = true,
+                disableCarMovement = true,
+                disableMouse = false,
+                disableCombat = true,
+            }, {
+                animDict = 'anim@gangops@facility@servers@',
+                anim = 'hotwire',
+                flags = 16,
+            }, {}, {}, function() -- Play When Done
+                if Config.PSDispacth then
+                    exports[Config.Dispatch]:SuspiciousActivity()
+                end
+                -- local playerData = exports['qs-dispatch']:GetPlayerInfo()
+                -- exports['qs-dispatch']:getSSURL(function(image)
+                --     TriggerServerEvent('qs-dispatch:server:CreateDispatchCall', {
+                --         job = { 'police' },
+                --         callLocation = playerData.coords,
+                --         callCode = { code = 'Braquage ATM', snippet = '10-92' },
+                --         message = " Adresse: Entre ".. playerData.street_1.. " et ".. playerData.street_2.. "",
+                --         flashes = false,
+                --         image = image or nil,
+                --         blip = {
+                --             sprite = 488,
+                --             scale = 1.5,
+                --             colour = 1,
+                --             flashes = true,
+                --             text = 'Braquage ATM',
+                --             time = 1000, --(20 * 1000),     --20 secs
+                --         }
+                --     })
+                -- end)
                 ClearPedTasks(PlayerPed)
                 local ObjectDes = nil
                 local ObjectConsole = nil
@@ -225,11 +231,13 @@ AddEventHandler("mrf_atmrobbery:client:ropeUsed", function()
                         Wait(100)
                     end
                 end, function()
+                    ClearPedTasks(PlayerPed)
                     QBCore.Functions.Notify("Vous n'avez pas réussi à attacher la corde!", 'error', 7500)
                 end)
             end
         else
             QBCore.Functions.Notify("Il n'y pas assez de force de l'ordre!", "error")
+            TriggerServerEvent("mrf_atmrobbery:server:resetCurrentRobber")
         end
     else
         TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
@@ -252,6 +260,10 @@ local function OnHackDone(success)
         QBCore.Functions.Notify("Vous avez échoué, essayez à nouveau!", 'error', 7500)
     end
 end
+
+RegisterNetEvent('mrf_atmrobbery:client:deleteTimeOut', function()
+    TriggerServerEvent("mrf_atmrobbery:server:deleteRopeProp", Rope)
+end)
 
 RegisterNetEvent("mrf_atmrobbery:client:crackATM")
 AddEventHandler("mrf_atmrobbery:client:crackATM", function()
